@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
-import { Navigate } from "react-router-dom";
 import { Context } from "../store/appContext";
+import { Navigate, Outlet } from "react-router-dom";
 
-const PrivateRoute = ({ children }) => {
-  const { store } = useContext(Context);
-  return store.isAuthenticated ? children : <Navigate to="/login" />;
+const PrivateRoute = () => {
+    const { store } = useContext(Context);
+
+    // Si no hay token, redirigir al login
+    return store.token ? <Outlet /> : <Navigate to="/login" />;
 };
 
 export default PrivateRoute;
+

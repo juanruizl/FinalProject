@@ -50,26 +50,29 @@ const getState = ({ getStore, getActions, setStore }) => {
                 const store = getStore();
                 setStore({ loading: true });
                 try {
-                    const resp = await getActions().fetchWithToken(
+                    const user = await getActions().fetchWithToken(
                         `${process.env.BACKEND_URL}/api/protected`
                     );
-                    setStore({ currentUser: resp });
+                    setStore({ currentUser: user });
                 } catch (error) {
-                    console.error("Error al obtener el usuario:", error);
+                    console.error("Error al obtener el usuario actual:", error);
                 } finally {
                     setStore({ loading: false });
                 }
             },
 
-            // Obtener elementos genéricos
-            getEntities: async (endpoint, storeKey) => {
+            // Obtener entidades genéricas
+            fetchEntities: async (endpoint, storeKey) => {
+                setStore({ loading: true });
                 try {
-                    const resp = await getActions().fetchWithToken(
+                    const data = await getActions().fetchWithToken(
                         `${process.env.BACKEND_URL}/api/${endpoint}`
                     );
-                    setStore({ [storeKey]: resp });
+                    setStore({ [storeKey]: data });
                 } catch (error) {
                     console.error(`Error al obtener ${storeKey}:`, error);
+                } finally {
+                    setStore({ loading: false });
                 }
             },
 
@@ -77,14 +80,14 @@ const getState = ({ getStore, getActions, setStore }) => {
             createEntity: async (endpoint, storeKey, data) => {
                 const store = getStore();
                 try {
-                    const resp = await getActions().fetchWithToken(
+                    const entity = await getActions().fetchWithToken(
                         `${process.env.BACKEND_URL}/api/${endpoint}`,
                         {
                             method: "POST",
                             body: JSON.stringify(data),
                         }
                     );
-                    setStore({ [storeKey]: [...store[storeKey], resp] });
+                    setStore({ [storeKey]: [...store[storeKey], entity] });
                     return true;
                 } catch (error) {
                     console.error(`Error al crear en ${endpoint}:`, error);
@@ -96,7 +99,7 @@ const getState = ({ getStore, getActions, setStore }) => {
             updateEntity: async (endpoint, id, storeKey, data) => {
                 const store = getStore();
                 try {
-                    const resp = await getActions().fetchWithToken(
+                    const entity = await getActions().fetchWithToken(
                         `${process.env.BACKEND_URL}/api/${endpoint}/${id}`,
                         {
                             method: "PUT",
@@ -104,7 +107,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                         }
                     );
                     const updatedStore = store[storeKey].map((item) =>
-                        item.id === id ? resp : item
+                        item.id === id ? entity : item
                     );
                     setStore({ [storeKey]: updatedStore });
                     return true;
@@ -129,29 +132,21 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Obtener todas las transacciones
-            getTransactions: async () => {
-                await getActions().getEntities("transactions", "transactions");
+            // Funciones específicas para cada entidad
+            loadTransactions: async () => {
+                await getActions().fetchEntities("transactions", "transactions");
             },
-
-            // Obtener todos los pagos
-            getPayments: async () => {
-                await getActions().getEntities("payments", "payments");
+            loadPayments: async () => {
+                await getActions().fetchEntities("payments", "payments");
             },
-
-            // Obtener todos los proyectos
-            getProjects: async () => {
-                await getActions().getEntities("projects", "projects");
+            loadProjects: async () => {
+                await getActions().fetchEntities("projects", "projects");
             },
-
-            // Obtener todos los presupuestos
-            getBudgets: async () => {
-                await getActions().getEntities("budgets", "budgets");
+            loadBudgets: async () => {
+                await getActions().fetchEntities("budgets", "budgets");
             },
-
-            // Obtener todos los empleados
-            getEmployees: async () => {
-                await getActions().getEntities("employees", "employees");
+            loadEmployees: async () => {
+                await getActions().fetchEntities("employees", "employees");
             },
 
             // Solicitud protegida genérica
