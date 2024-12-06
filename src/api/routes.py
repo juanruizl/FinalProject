@@ -282,12 +282,13 @@ def update_project(project_id):
     """Actualizar un proyecto"""
     current_user_id = get_jwt_identity()
     project = Project.query.get(project_id)
-    if not project or project.user_id != current_user_id:
+    if not project or int(project.user_id) != int(current_user_id):
         raise APIException("Proyecto no encontrado o no autorizado", status_code=404)
 
     data = request.json
     project.name = data.get("name", project.name)
     project.description = data.get("description", project.description)
+    project.client = data.get("client", project.client)
     project.start_date = data.get("start_date", project.start_date)
     project.end_date = data.get("end_date", project.end_date)
 
@@ -300,7 +301,7 @@ def delete_project(project_id):
     """Eliminar un proyecto"""
     current_user_id = get_jwt_identity()
     project = Project.query.get(project_id)
-    if not project or project.user_id != current_user_id:
+    if not project or int(project.user_id) != int(current_user_id):
         raise APIException("Proyecto no encontrado o no autorizado", status_code=404)
 
     db.session.delete(project)
@@ -320,14 +321,16 @@ def create_budget():
         raise APIException("Faltan campos obligatorios (project_id, amount, status)", status_code=400)
 
     project = Project.query.get(data['project_id'])
-    if not project or project.user_id != current_user_id:
+    if not project or int(project.user_id) != int(current_user_id):
         raise APIException("Proyecto no encontrado o no autorizado", status_code=404)
 
     new_budget = Budget(
         user_id=current_user_id,
         project_id=data['project_id'],
+        description=data['description'],
         amount=data['amount'],
-        status=data['status']
+        status=data['status'],
+        date=data.get('date')
     )
     db.session.add(new_budget)
     db.session.commit()
@@ -347,7 +350,7 @@ def update_budget(budget_id):
     """Actualizar un presupuesto"""
     current_user_id = get_jwt_identity()
     budget = Budget.query.get(budget_id)
-    if not budget or budget.user_id != current_user_id:
+    if not budget or int(budget.user_id) != int(current_user_id):
         raise APIException("Presupuesto no encontrado o no autorizado", status_code=404)
 
     data = request.json
@@ -363,7 +366,7 @@ def delete_budget(budget_id):
     """Eliminar un presupuesto"""
     current_user_id = get_jwt_identity()
     budget = Budget.query.get(budget_id)
-    if not budget or budget.user_id != current_user_id:
+    if not budget or int(budget.user_id) != int(current_user_id):
         raise APIException("Presupuesto no encontrado o no autorizado", status_code=404)
 
     db.session.delete(budget)
@@ -406,7 +409,7 @@ def update_employee(employee_id):
     """Actualizar un empleado"""
     current_user_id = get_jwt_identity()
     employee = Employee.query.get(employee_id)
-    if not employee or employee.user_id != current_user_id:
+    if not employee or int(employee.user_id) != int(current_user_id):
         raise APIException("Empleado no encontrado o no autorizado", status_code=404)
 
     data = request.json
@@ -423,7 +426,7 @@ def delete_employee(employee_id):
     """Eliminar un empleado"""
     current_user_id = get_jwt_identity()
     employee = Employee.query.get(employee_id)
-    if not employee or employee.user_id != current_user_id:
+    if not employee or int(employee.user_id) != int(current_user_id):
         raise APIException("Empleado no encontrado o no autorizado", status_code=404)
 
     db.session.delete(employee)
