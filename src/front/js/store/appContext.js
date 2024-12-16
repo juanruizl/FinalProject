@@ -22,13 +22,11 @@ const injectContext = (PassedComponent) => {
 
         useEffect(() => {
             console.log("Initializing context...");
-            if (state?.actions?.syncTokenFromSessionStorage) {
-                state.actions.syncTokenFromSessionStorage();
-            } else {
-                console.warn("syncTokenFromSessionStorage no está definido");
+            // Sincronizar token y cargar datos iniciales
+            state.actions.syncTokenFromSessionStorage();
+            if (state.store.token) {
+                state.actions.getCurrentUser();
             }
-
-            // Otros efectos secundarios iniciales pueden ir aquí
         }, []);
 
         // Proveer el contexto al componente

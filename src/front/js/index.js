@@ -1,7 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client"; 
 import App from "./App.jsx";
-import injectContext from "./store/appContext.js"; // Asegúrate de que el contexto está correctamente configurado
+import injectContext from "./store/appContext.js"; 
+import "bootstrap/dist/css/bootstrap.min.css";
+
 
 // Envuelve App con el contexto
 const AppWithContext = injectContext(App);

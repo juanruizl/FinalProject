@@ -12,6 +12,14 @@ const getState = ({ getStore, getActions, setStore }) => {
             loading: false,
         },
         actions: {
+            // Sincronizar token desde sessionStorage
+            syncTokenFromSessionStorage: () => {
+                const token = sessionStorage.getItem("token");
+                if (token) {
+                    setStore({ token });
+                }
+            },
+
             // Iniciar sesión
             login: async (email, password) => {
                 setStore({ loading: true, errorMessage: null });
@@ -30,6 +38,9 @@ const getState = ({ getStore, getActions, setStore }) => {
                     const data = await resp.json();
                     setStore({ token: data.token });
                     sessionStorage.setItem("token", data.token);
+
+                    // Obtener datos del usuario actual
+                    await getActions().getCurrentUser();
                     return true;
                 } catch (error) {
                     setStore({ errorMessage: error.message });
@@ -48,6 +59,8 @@ const getState = ({ getStore, getActions, setStore }) => {
             // Obtener datos del usuario actual
             getCurrentUser: async () => {
                 const store = getStore();
+                if (!store.token) return;
+
                 setStore({ loading: true });
                 try {
                     const user = await getActions().fetchWithToken(
@@ -61,7 +74,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Obtener entidades genéricas
+            // Función genérica para obtener entidades
             fetchEntities: async (endpoint, storeKey) => {
                 setStore({ loading: true });
                 try {
@@ -133,21 +146,11 @@ const getState = ({ getStore, getActions, setStore }) => {
             },
 
             // Funciones específicas para cada entidad
-            loadTransactions: async () => {
-                await getActions().fetchEntities("transactions", "transactions");
-            },
-            loadPayments: async () => {
-                await getActions().fetchEntities("payments", "payments");
-            },
-            loadProjects: async () => {
-                await getActions().fetchEntities("projects", "projects");
-            },
-            loadBudgets: async () => {
-                await getActions().fetchEntities("budgets", "budgets");
-            },
-            loadEmployees: async () => {
-                await getActions().fetchEntities("employees", "employees");
-            },
+            loadTransactions: async () => await getActions().fetchEntities("transactions", "transactions"),
+            loadPayments: async () => await getActions().fetchEntities("payments", "payments"),
+            loadProjects: async () => await getActions().fetchEntities("projects", "projects"),
+            loadBudgets: async () => await getActions().fetchEntities("budgets", "budgets"),
+            loadEmployees: async () => await getActions().fetchEntities("employees", "employees"),
 
             // Solicitud protegida genérica
             fetchWithToken: async (url, options = {}) => {

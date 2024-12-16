@@ -6,6 +6,10 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Transactions from "./pages/Transactions.jsx";
+import Budgets from "./pages/Budgets.jsx";
+import Employees from "./pages/Employees.jsx";
+import Projects from "./pages/Projects.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 
 const App = () => {
@@ -22,6 +26,10 @@ const App = () => {
                     {/* Rutas protegidas */}
                     <Route element={<PrivateRoute />}>
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/transactions" element={<Transactions />} />
+                        <Route path="/budgets" element={<Budgets />} />
+                        <Route path="/employees" element={<Employees />} />
+                        <Route path="/projects" element={<Projects />} />
                     </Route>
 
                     {/* Ruta por defecto */}
@@ -34,4 +42,3 @@ const App = () => {
 };
 
 export default App;
-
