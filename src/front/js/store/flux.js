@@ -50,6 +50,31 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
+            register: async (formData) => {
+                const { BACKEND_URL } = process.env; // URL del backend
+                try {
+                    const resp = await fetch(`${BACKEND_URL}/api/users`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(formData), // Los datos del formulario
+                    });
+            
+                    if (!resp.ok) {
+                        const errorData = await resp.json();
+                        throw new Error(errorData.msg || "Error al registrar el usuario");
+                    }
+            
+                    const data = await resp.json();
+                    console.log("Usuario registrado con éxito:", data);
+                    return true; // Indicar que la operación fue exitosa
+                } catch (error) {
+                    console.error("Error al registrar usuario:", error);
+                    return false; // Indicar que la operación falló
+                }
+            },
+            
             // Cerrar sesión
             logout: () => {
                 setStore({ token: null, currentUser: null });
