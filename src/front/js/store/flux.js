@@ -221,8 +221,18 @@ const getState = ({ getStore, getActions, setStore }) => {
             },
 
             // Cargar datos específicos
-            loadTransactions: async () =>
-                await getActions().fetchEntities("transactions", "transactions"),
+            loadTransactions: async () => {
+                const { fetchWithToken } = getActions();
+                try {
+                    const transactions = await fetchWithToken(`${process.env.BACKEND_URL}/api/transactions`);
+                    setStore({ transactions }); // Actualiza los datos en el store global
+                    return transactions; // Devuelve los datos para uso inmediato
+                } catch (error) {
+                    console.error("Error al cargar transacciones:", error.message);
+                    setStore({ transactions: [] }); // Limpia el estado si hay error
+                    throw error; // Permite manejar el error en el componente
+                }
+            },                    
             loadPayments: async () =>
                 await getActions().fetchEntities("payments", "payments"),
             loadProjects: async () =>
