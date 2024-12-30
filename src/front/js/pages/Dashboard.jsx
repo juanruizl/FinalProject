@@ -1,27 +1,72 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Context } from "../store/appContext";
+import Chart from "../components/Chart.jsx";
 
 const Dashboard = () => {
     const { store, actions } = useContext(Context);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        actions.loadTransactions();
-        actions.loadProjects();
-        actions.loadEmployees();
+        const fetchData = async () => {
+            try {
+                await actions.getCurrentUser();
+                await actions.loadTransactions();
+                await actions.loadProjects();
+                await actions.loadEmployees();
+            } catch (error) {
+                console.error("Error al cargar datos iniciales:", error);
+                setError("Hubo un error al cargar los datos. Por favor, inténtalo de nuevo.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
+
+    if (loading) {
+        return (
+            <div className="container mt-5 text-center">
+                <h2>Cargando datos...</h2>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mt-5 text-center">
+                <h2 className="text-danger">{error}</h2>
+                <button
+                    className="btn btn-primary mt-3"
+                    onClick={() => {
+                        setLoading(true);
+                        setError(null);
+                        actions.getCurrentUser();
+                    }}
+                >
+                    Reintentar
+                </button>
+            </div>
+        );
+    }
+
+    const user = store.currentUser || {};
 
     return (
         <div className="container mt-5">
             <div className="row mb-4">
                 <div className="col text-center">
-                    <h1 className="fw-bold">Panel de Control</h1>
+                    <h1 className="fw-bold">{user.company || "Mi Empresa"}</h1>
                     <p className="text-muted">
-                        Bienvenido, <span className="text-dark">{store.user?.name}</span>. Aquí tienes un resumen de tu empresa: <span className="text-dark">{store.user?.company}</span>.
+                        Bienvenido, <span className="text-dark">{user.name || "Usuario"}</span>.
+                        Aquí tienes un resumen de cómo se encuentra actualmente tu empresa.
                     </p>
                 </div>
             </div>
+
             <div className="row g-4">
-                {/* Resumen de Proyectos */}
+                {/* Resumen general */}
                 <div className="col-md-4">
                     <div className="card shadow border-0 h-100">
                         <div className="card-body text-center">
@@ -33,7 +78,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Resumen de Transacciones */}
                 <div className="col-md-4">
                     <div className="card shadow border-0 h-100">
                         <div className="card-body text-center">
@@ -45,7 +89,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Resumen de Empleados */}
                 <div className="col-md-4">
                     <div className="card shadow border-0 h-100">
                         <div className="card-body text-center">
@@ -58,29 +101,12 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Gráfica o detalles adicionales */}
+            {/* Gráfico de transacciones */}
             <div className="row mt-5">
                 <div className="col">
                     <div className="card shadow border-0">
                         <div className="card-body">
-                            <h5 className="card-title fw-bold">Últimas Transacciones</h5>
-                            {store.transactions?.length ? (
-                                <ul className="list-group list-group-flush">
-                                    {store.transactions.slice(0, 5).map((transaction, index) => (
-                                        <li
-                                            key={index}
-                                            className="list-group-item d-flex justify-content-between align-items-center"
-                                        >
-                                            {transaction.description || "Sin descripción"}
-                                            <span className="badge bg-primary rounded-pill">
-                                                ${transaction.amount.toFixed(2)}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-muted">No hay transacciones recientes.</p>
-                            )}
+                            <Chart /> {/* Aquí se utiliza el componente Chart */}
                         </div>
                     </div>
                 </div>

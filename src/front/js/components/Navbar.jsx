@@ -49,8 +49,8 @@ const Navbar = () => {
                                   </Link>
                               </li>
                               <li className="nav-item">
-                                  <Link className="nav-link" to="/payments">
-                                      Pagos
+                                  <Link className="nav-link" to="/Employees">
+                                      Empleados
                                   </Link>
                               </li>
                               <li className="nav-item">

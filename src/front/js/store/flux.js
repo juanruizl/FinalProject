@@ -2,119 +2,171 @@ const getState = ({ getStore, getActions, setStore }) => {
     return {
         store: {
             token: null,
+            user_id: null,
             currentUser: null,
             transactions: [],
-            payments: [],
             projects: [],
             budgets: [],
             employees: [],
+            chartUrl: null, // Para gráficos
             errorMessage: null,
             loading: false,
         },
         actions: {
-            // Sincronizar token desde sessionStorage
-            syncTokenFromSessionStorage: () => {
+            // Sincronizar el token y el user_id desde sessionStorage
+            syncTokenFromSessionStorage: async () => {
                 const token = sessionStorage.getItem("token");
-                if (token) {
-                    setStore({ token });
+                const user_id = sessionStorage.getItem("user_id");
+                if (token && token.split(".").length === 3) {
+                    setStore({ token, user_id });
+                    try {
+                        await getActions().getCurrentUser();
+                    } catch {
+                        sessionStorage.removeItem("token");
+                        sessionStorage.removeItem("user_id");
+                        setStore({ token: null, user_id: null, currentUser: null });
+                    }
+                } else {
+                    sessionStorage.removeItem("token");
+                    sessionStorage.removeItem("user_id");
+                    setStore({ token: null, user_id: null });
                 }
             },
 
-            // Iniciar sesión
+            // Inicio de sesión
             login: async (email, password) => {
-                setStore({ loading: true, errorMessage: null });
                 try {
-                    const resp = await fetch(`${process.env.BACKEND_URL}/api/login`, {
+                    const response = await fetch(`${process.env.BACKEND_URL}/api/login`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email, password }),
                     });
 
+                    if (response.ok) {
+                        const data = await response.json();
+                        setStore({
+                            token: data.token,
+                            user_id: data.user_id,
+                        });
+                        sessionStorage.setItem("token", data.token);
+                        sessionStorage.setItem("user_id", data.user_id);
+                        return true; // Login exitoso
+                    } else {
+                        const errorData = await response.json();
+                        console.error("Error en login:", errorData.msg || response.statusText);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error("Error en login:", error.message);
+                    return false;
+                }
+            },
+
+            // Registro de usuario
+            register: async (formData) => {
+                try {
+                    const resp = await fetch(`${process.env.BACKEND_URL}/api/register`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(formData),
+                    });
+
                     if (!resp.ok) {
                         const errorData = await resp.json();
-                        throw new Error(errorData.msg || "Error en el inicio de sesión");
+                        throw new Error(errorData.message || "Error al registrar el usuario");
                     }
 
-                    const data = await resp.json();
-                    setStore({ token: data.token });
-                    sessionStorage.setItem("token", data.token);
-
-                    // Obtener datos del usuario actual
-                    await getActions().getCurrentUser();
                     return true;
                 } catch (error) {
-                    setStore({ errorMessage: error.message });
+                    console.error("Error al registrar usuario:", error);
                     return false;
-                } finally {
-                    setStore({ loading: false });
                 }
             },
 
-            register: async (formData) => {
-                const { BACKEND_URL } = process.env; // URL del backend
-                try {
-                    const resp = await fetch(`${BACKEND_URL}/api/users`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(formData), // Los datos del formulario
-                    });
-            
-                    if (!resp.ok) {
-                        const errorData = await resp.json();
-                        throw new Error(errorData.msg || "Error al registrar el usuario");
-                    }
-            
-                    const data = await resp.json();
-                    console.log("Usuario registrado con éxito:", data);
-                    return true; // Indicar que la operación fue exitosa
-                } catch (error) {
-                    console.error("Error al registrar usuario:", error);
-                    return false; // Indicar que la operación falló
-                }
-            },
-            
             // Cerrar sesión
             logout: () => {
-                setStore({ token: null, currentUser: null });
+                setStore({ token: null, user_id: null, currentUser: null });
                 sessionStorage.removeItem("token");
+                sessionStorage.removeItem("user_id");
             },
 
             // Obtener datos del usuario actual
             getCurrentUser: async () => {
                 const store = getStore();
-                if (!store.token) return;
+                const user_id = store.user_id || sessionStorage.getItem("user_id");
+                if (!store.token || !user_id) return;
 
-                setStore({ loading: true });
                 try {
-                    const user = await getActions().fetchWithToken(
-                        `${process.env.BACKEND_URL}/api/protected`
-                    );
-                    setStore({ currentUser: user });
+                    const response = await fetch(`${process.env.BACKEND_URL}/api/users/${user_id}`, {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${store.token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (response.ok) {
+                        const user = await response.json();
+                        console.log("Usuario obtenido:", user);
+                        setStore({ currentUser: user }); // Guardar como objeto
+                    } else {
+                        console.error("Error al obtener el usuario:", response.statusText);
+                    }
                 } catch (error) {
-                    console.error("Error al obtener el usuario actual:", error);
-                } finally {
-                    setStore({ loading: false });
+                    console.error("Error en getCurrentUser:", error.message);
                 }
             },
 
-            // Función genérica para obtener entidades
+            // Solicitud protegida con token
+            fetchWithToken: async (url, options = {}) => {
+                const store = getStore();
+                if (!store.token) {
+                    console.error("Token no disponible");
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        headers: {
+                            ...options.headers,
+                            Authorization: `Bearer ${store.token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            console.error("Token inválido o expirado. Cerrando sesión.");
+                            getActions().logout();
+                        }
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Error ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error("Error en fetchWithToken:", error.message);
+                    throw error;
+                }
+            },
+
+            // Manejo de entidades (CRUD)
             fetchEntities: async (endpoint, storeKey) => {
                 setStore({ loading: true });
                 try {
                     const data = await getActions().fetchWithToken(
                         `${process.env.BACKEND_URL}/api/${endpoint}`
                     );
-                    setStore({ [storeKey]: data });
+                    setStore({ [storeKey]: data || [] });
                 } catch (error) {
-                    console.error(`Error al obtener ${storeKey}:`, error);
+                    console.error(`Error al obtener ${storeKey}:`, error.message);
+                    setStore({ [storeKey]: [] });
                 } finally {
                     setStore({ loading: false });
                 }
             },
 
-            // Crear entidad genérica
             createEntity: async (endpoint, storeKey, data) => {
                 const store = getStore();
                 try {
@@ -133,7 +185,6 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Actualizar entidad genérica
             updateEntity: async (endpoint, id, storeKey, data) => {
                 const store = getStore();
                 try {
@@ -155,7 +206,6 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Eliminar entidad genérica
             deleteEntity: async (endpoint, id, storeKey) => {
                 const store = getStore();
                 try {
@@ -170,37 +220,42 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Funciones específicas para cada entidad
-            loadTransactions: async () => await getActions().fetchEntities("transactions", "transactions"),
-            loadPayments: async () => await getActions().fetchEntities("payments", "payments"),
-            loadProjects: async () => await getActions().fetchEntities("projects", "projects"),
-            loadBudgets: async () => await getActions().fetchEntities("budgets", "budgets"),
-            loadEmployees: async () => await getActions().fetchEntities("employees", "employees"),
+            // Cargar datos específicos
+            loadTransactions: async () =>
+                await getActions().fetchEntities("transactions", "transactions"),
+            loadPayments: async () =>
+                await getActions().fetchEntities("payments", "payments"),
+            loadProjects: async () =>
+                await getActions().fetchEntities("projects", "projects"),
+            loadBudgets: async () =>
+                await getActions().fetchEntities("budgets", "budgets"),
+            loadEmployees: async () =>
+                await getActions().fetchEntities("employees", "employees"),
 
-            // Solicitud protegida genérica
-            fetchWithToken: async (url, options = {}) => {
-                const store = getStore();
+            // Cargar datos del gráfico
+            loadChart: async (startDate, endDate) => {
                 try {
-                    const resp = await fetch(url, {
-                        ...options,
-                        headers: {
-                            ...options.headers,
-                            Authorization: `Bearer ${store.token}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
-
-                    if (!resp.ok) {
-                        const errorData = await resp.json();
-                        throw new Error(errorData.msg || `Error ${resp.status}`);
+                    // Construye la URL con los parámetros de fechas si están presentes
+                    let url = `${process.env.BACKEND_URL}/api/chart`;
+                    if (startDate || endDate) {
+                        const params = new URLSearchParams();
+                        if (startDate) params.append("start_date", startDate);
+                        if (endDate) params.append("end_date", endDate);
+                        url += `?${params.toString()}`;
                     }
-
-                    return await resp.json();
+            
+                    // Realiza la solicitud al backend
+                    const chartData = await getActions().fetchWithToken(url);
+                    if (chartData && chartData.url) {
+                        return chartData.url;
+                    } else {
+                        throw new Error("No se pudo obtener la URL del gráfico.");
+                    }
                 } catch (error) {
-                    console.error("Error en la solicitud protegida:", error);
-                    throw error;
+                    console.error("Error al cargar datos del gráfico:", error.message);
+                    throw error; // Deja que el componente Chart maneje este error
                 }
-            },
+            },            
         },
     };
 };
