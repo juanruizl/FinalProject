@@ -7,9 +7,6 @@ import requests
 
 api = Blueprint('api', __name__)
 
-# --------------------------------------------
-# Rutas de Autenticación
-# --------------------------------------------
 @api.route('/login', methods=['POST'])
 def login():
     if not request.is_json:
@@ -47,9 +44,6 @@ def register():
 
     return jsonify(user.serialize()), 201
 
-# --------------------------------------------
-# Rutas para Usuarios
-# --------------------------------------------
 @api.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():
@@ -93,9 +87,6 @@ def delete_user(user_id):
     db.session.commit()
     return jsonify({"message": f"Usuario con ID {user_id} eliminado correctamente"}), 200
 
-# --------------------------------------------
-# Rutas para Transacciones
-# --------------------------------------------
 @api.route('/transactions', methods=['POST'])
 @jwt_required()
 def create_transaction():
@@ -165,9 +156,6 @@ def delete_transaction(transaction_id):
     db.session.commit()
     return jsonify({"message": f"Transacción con ID {transaction_id} eliminada correctamente"}), 200
 
-# --------------------------------------------
-# Rutas para Empleados
-# --------------------------------------------
 @api.route('/employees', methods=['POST'])
 @jwt_required()
 def create_employee():
@@ -221,9 +209,6 @@ def delete_employee(employee_id):
     db.session.commit()
     return jsonify({"message": f"Empleado con ID {employee_id} eliminado correctamente"}), 200
 
-# --------------------------------------------
-# Rutas para Proyectos
-# --------------------------------------------
 @api.route('/projects', methods=['POST'])
 @jwt_required()
 def create_project():
@@ -284,9 +269,6 @@ def delete_project(project_id):
     db.session.commit()
     return jsonify({"message": f"Proyecto con ID {project_id} eliminado correctamente"}), 200
 
-# --------------------------------------------
-# Rutas para Presupuestos
-# --------------------------------------------
 @api.route('/budgets', methods=['POST'])
 @jwt_required()
 def create_budget():
@@ -346,12 +328,6 @@ def delete_budget(budget_id):
     db.session.commit()
     return jsonify({"message": f"Presupuesto con ID {budget_id} eliminado correctamente"}), 200
 
-# --------------------------------------------
-# Rutas para el Gráfico con QuickChart
-# --------------------------------------------
-# --------------------------------------------
-# Rutas para el Gráfico con QuickChart
-# --------------------------------------------
 @api.route('/chart', methods=['GET'])
 @jwt_required()
 def generate_chart():
@@ -361,7 +337,6 @@ def generate_chart():
     
     query = Transaction.query.filter_by(user_id=user_id)
 
-    # Aplicar filtro de fechas si están presentes
     if start_date:
         try:
             start_date_parsed = datetime.strptime(start_date, "%Y-%m-%d")
@@ -383,7 +358,6 @@ def generate_chart():
 
     chart_data = Transaction.transform_for_chart(transactions)
 
-    # Enviar solicitud a QuickChart API
     try:
         response = requests.post("https://quickchart.io/chart/create", json=chart_data)
         response.raise_for_status()

@@ -8,23 +8,28 @@ const getState = ({ getStore, getActions, setStore }) => {
             projects: [],
             budgets: [],
             employees: [],
-            chartUrl: null, // Para gráficos
+            chartUrl: null, 
             errorMessage: null,
             loading: false,
         },
         actions: {
-            // Sincronizar el token y el user_id desde sessionStorage
             syncTokenFromSessionStorage: async () => {
                 const token = sessionStorage.getItem("token");
                 const user_id = sessionStorage.getItem("user_id");
+            
                 if (token && token.split(".").length === 3) {
                     setStore({ token, user_id });
-                    try {
-                        await getActions().getCurrentUser();
-                    } catch {
-                        sessionStorage.removeItem("token");
-                        sessionStorage.removeItem("user_id");
-                        setStore({ token: null, user_id: null, currentUser: null });
+            
+                    // Asegúrate de que getCurrentUser no se llama repetidamente
+                    if (!getStore().currentUser) {
+                        try {
+                            await getActions().getCurrentUser();
+                        } catch (error) {
+                            console.error("Error al sincronizar usuario:", error.message);
+                            sessionStorage.removeItem("token");
+                            sessionStorage.removeItem("user_id");
+                            setStore({ token: null, user_id: null, currentUser: null });
+                        }
                     }
                 } else {
                     sessionStorage.removeItem("token");
@@ -32,8 +37,8 @@ const getState = ({ getStore, getActions, setStore }) => {
                     setStore({ token: null, user_id: null });
                 }
             },
+            
 
-            // Inicio de sesión
             login: async (email, password) => {
                 try {
                     const response = await fetch(`${process.env.BACKEND_URL}/api/login`, {
@@ -50,7 +55,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                         });
                         sessionStorage.setItem("token", data.token);
                         sessionStorage.setItem("user_id", data.user_id);
-                        return true; // Login exitoso
+                        return true; 
                     } else {
                         const errorData = await response.json();
                         console.error("Error en login:", errorData.msg || response.statusText);
@@ -62,7 +67,6 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Registro de usuario
             register: async (formData) => {
                 try {
                     const resp = await fetch(`${process.env.BACKEND_URL}/api/register`, {
@@ -83,48 +87,52 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Cerrar sesión
             logout: () => {
                 setStore({ token: null, user_id: null, currentUser: null });
                 sessionStorage.removeItem("token");
                 sessionStorage.removeItem("user_id");
             },
 
-            // Obtener datos del usuario actual
             getCurrentUser: async () => {
                 const store = getStore();
                 const user_id = store.user_id || sessionStorage.getItem("user_id");
-                if (!store.token || !user_id) return;
-
+            
+                if (!store.token || !user_id) {
+                    console.warn("No hay token o user_id disponible para obtener el usuario.");
+                    return;
+                }
+            
                 try {
-                    const response = await fetch(`${process.env.BACKEND_URL}/api/users/${user_id}`, {
-                        method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${store.token}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
-
-                    if (response.ok) {
-                        const user = await response.json();
-                        console.log("Usuario obtenido:", user);
-                        setStore({ currentUser: user }); // Guardar como objeto
-                    } else {
-                        console.error("Error al obtener el usuario:", response.statusText);
+                    // Verifica si el usuario ya está cargado para evitar solicitudes redundantes
+                    if (!store.currentUser) {
+                        const response = await fetch(`${process.env.BACKEND_URL}/api/users/${user_id}`, {
+                            method: "GET",
+                            headers: {
+                                Authorization: `Bearer ${store.token}`,
+                                "Content-Type": "application/json",
+                            },
+                        });
+            
+                        if (response.ok) {
+                            const user = await response.json();
+                            setStore({ currentUser: user });
+                        } else {
+                            console.error("Error al obtener el usuario:", response.statusText);
+                        }
                     }
                 } catch (error) {
                     console.error("Error en getCurrentUser:", error.message);
                 }
             },
+            
 
-            // Solicitud protegida con token
             fetchWithToken: async (url, options = {}) => {
                 const store = getStore();
                 if (!store.token) {
-                    console.error("Token no disponible");
-                    return null;
+                    console.error("Token no disponible. Asegúrate de estar autenticado.");
+                    throw new Error("Token no disponible. Inicia sesión nuevamente.");
                 }
-
+            
                 try {
                     const response = await fetch(url, {
                         ...options,
@@ -134,7 +142,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                             "Content-Type": "application/json",
                         },
                     });
-
+            
                     if (!response.ok) {
                         if (response.status === 401) {
                             console.error("Token inválido o expirado. Cerrando sesión.");
@@ -143,15 +151,14 @@ const getState = ({ getStore, getActions, setStore }) => {
                         const errorData = await response.json();
                         throw new Error(errorData.message || `Error ${response.status}`);
                     }
-
+            
                     return await response.json();
                 } catch (error) {
                     console.error("Error en fetchWithToken:", error.message);
                     throw error;
                 }
-            },
+            },            
 
-            // Manejo de entidades (CRUD)
             fetchEntities: async (endpoint, storeKey) => {
                 setStore({ loading: true });
                 try {
@@ -220,19 +227,25 @@ const getState = ({ getStore, getActions, setStore }) => {
                 }
             },
 
-            // Cargar datos específicos
             loadTransactions: async () => {
                 const { fetchWithToken } = getActions();
+                const store = getStore();
+                if (!store.token) {
+                    console.error("No se puede cargar transacciones: token no disponible.");
+                    throw new Error("No se puede cargar transacciones sin un token.");
+                }
+            
                 try {
                     const transactions = await fetchWithToken(`${process.env.BACKEND_URL}/api/transactions`);
-                    setStore({ transactions }); // Actualiza los datos en el store global
-                    return transactions; // Devuelve los datos para uso inmediato
+                    setStore({ transactions });
+                    return transactions;
                 } catch (error) {
                     console.error("Error al cargar transacciones:", error.message);
-                    setStore({ transactions: [] }); // Limpia el estado si hay error
-                    throw error; // Permite manejar el error en el componente
+                    setStore({ transactions: [] });
+                    throw error;
                 }
-            },                    
+            },
+                             
             loadPayments: async () =>
                 await getActions().fetchEntities("payments", "payments"),
             loadProjects: async () =>
@@ -242,10 +255,8 @@ const getState = ({ getStore, getActions, setStore }) => {
             loadEmployees: async () =>
                 await getActions().fetchEntities("employees", "employees"),
 
-            // Cargar datos del gráfico
             loadChart: async (startDate, endDate) => {
                 try {
-                    // Construye la URL con los parámetros de fechas si están presentes
                     let url = `${process.env.BACKEND_URL}/api/chart`;
                     if (startDate || endDate) {
                         const params = new URLSearchParams();
@@ -254,7 +265,6 @@ const getState = ({ getStore, getActions, setStore }) => {
                         url += `?${params.toString()}`;
                     }
             
-                    // Realiza la solicitud al backend
                     const chartData = await getActions().fetchWithToken(url);
                     if (chartData && chartData.url) {
                         return chartData.url;
@@ -263,7 +273,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                     }
                 } catch (error) {
                     console.error("Error al cargar datos del gráfico:", error.message);
-                    throw error; // Deja que el componente Chart maneje este error
+                    throw error; 
                 }
             },            
         },

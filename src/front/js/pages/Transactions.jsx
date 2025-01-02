@@ -85,72 +85,83 @@ const Transactions = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {store.transactions.map((transaction, index) => (
-                            <tr key={transaction.id}>
-                                <td>{index + 1}</td>
-                                <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                                <td
-                                    className={
-                                        transaction.transaction_type === "income"
-                                            ? "text-success fw-bold"
-                                            : "text-danger fw-bold"
-                                    }
-                                >
-                                    {transaction.transaction_type === "income" ? "+" : "-"}$
-                                    {transaction.amount.toLocaleString()}
-                                </td>
-                                <td>{transaction.description || "-"}</td>
-                                <td>
-                                    <Badge
-                                        bg={
+                        {Array.isArray(store.transactions) && store.transactions.length > 0 ? (
+                            store.transactions.map((transaction, index) => (
+                                <tr key={transaction.id}>
+                                    <td>{index + 1}</td>
+                                    <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                                    <td
+                                        className={
                                             transaction.transaction_type === "income"
-                                                ? "success"
-                                                : "danger"
+                                                ? "text-success fw-bold"
+                                                : "text-danger fw-bold"
                                         }
                                     >
-                                        {transaction.transaction_type === "income"
-                                            ? "Ingreso"
-                                            : "Gasto"}
-                                    </Badge>
-                                </td>
-                                <td>
-                                    <Badge
-                                        bg={
-                                            transaction.status === "completed"
-                                                ? "primary"
-                                                : "secondary"
+                                        {transaction.transaction_type === "income" ? "+" : "-"}${
+                                            transaction.amount.toLocaleString()
                                         }
-                                    >
-                                        {transaction.status === "completed"
-                                            ? "Completado"
-                                            : "Pendiente"}
-                                    </Badge>
-                                </td>
-                                <td>
-                                    <Button
-                                        variant="outline-primary"
-                                        size="sm"
-                                        onClick={() => {
-                                            setFormData({
-                                                ...transaction,
-                                                date: new Date(transaction.date).toISOString().split("T")[0],
-                                            });
-                                            handleModalShow();
-                                        }}
-                                        className="me-2"
-                                    >
-                                        <i className="bi bi-pencil"></i> Editar
-                                    </Button>
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => handleDelete(transaction.id)}
-                                    >
-                                        <i className="bi bi-trash"></i> Eliminar
-                                    </Button>
+                                    </td>
+                                    <td>{transaction.description || "-"}</td>
+                                    <td>
+                                        <Badge
+                                            bg={
+                                                transaction.transaction_type === "income"
+                                                    ? "success"
+                                                    : "danger"
+                                            }
+                                        >
+                                            {transaction.transaction_type === "income"
+                                                ? "Ingreso"
+                                                : "Gasto"}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <Badge
+                                            bg={
+                                                transaction.status === "completed"
+                                                    ? "primary"
+                                                    : "secondary"
+                                            }
+                                        >
+                                            {transaction.status === "completed"
+                                                ? "Completado"
+                                                : "Pendiente"}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            onClick={() => {
+                                                setFormData({
+                                                    ...transaction,
+                                                    date: new Date(transaction.date)
+                                                        .toISOString()
+                                                        .split("T")[0],
+                                                });
+                                                handleModalShow();
+                                            }}
+                                            className="me-2"
+                                        >
+                                            <i className="bi bi-pencil"></i> Editar
+                                        </Button>
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleDelete(transaction.id)}
+                                        >
+                                            <i className="bi bi-trash"></i> Eliminar
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7" className="text-center">
+                                    No hay transacciones disponibles.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </Table>
             )}

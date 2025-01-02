@@ -101,12 +101,11 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Gráfico de transacciones */}
             <div className="row mt-5">
                 <div className="col">
                     <div className="card shadow border-0">
                         <div className="card-body">
-                            <Chart /> {/* Aquí se utiliza el componente Chart */}
+                            <Chart /> 
                         </div>
                     </div>
                 </div>
