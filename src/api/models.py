@@ -66,13 +66,13 @@ class Transaction(db.Model):
     @staticmethod
     def transform_for_chart(transactions):
         """Transforma las transacciones al formato de QuickChart para un gráfico comparativo."""
-        # Definir el orden de los meses
+        # Ordenar transacciones por fecha
         transactions = sorted(transactions, key=lambda t: t.date)
 
         # Agrupar transacciones por mes
         data = {}
         for t in transactions:
-            month = t.date.strftime('%B')  # Nombre del mes en texto (e.g., 'January')
+            month = t.date.strftime('%B')  # Nombre del mes en texto
             if month not in data:
                 data[month] = {"income": 0, "expense": 0}
             data[month][t.transaction_type] += t.amount
@@ -91,26 +91,27 @@ class Transaction(db.Model):
                     "labels": labels,  # Etiquetas (meses)
                     "datasets": [
                         {
-                            "label": "Ventas (Income)",
+                            "label": "Ingresos",
                             "data": income_data,
-                            "backgroundColor": "rgba(255, 99, 132, 0.6)",  # Rojo
-                            "borderColor": "rgba(255, 99, 132, 1)",
+                            "backgroundColor": "rgba(40, 167, 69, 0.6)",  # Verde claro
+                            "borderColor": "rgba(40, 167, 69, 1)",  # Verde oscuro
                             "borderWidth": 1,
                         },
                         {
-                            "label": "Costos (Expense)",
+                            "label": "Gastos",
                             "data": expense_data,
-                            "backgroundColor": "rgba(54, 162, 235, 0.6)",  # Azul
-                            "borderColor": "rgba(54, 162, 235, 1)",
+                            "backgroundColor": "rgba(220, 53, 69, 0.6)",  # Rojo claro
+                            "borderColor": "rgba(220, 53, 69, 1)",  # Rojo oscuro
                             "borderWidth": 1,
                         },
                         {
-                            "label": "Ganancias (Profit)",
+                            "label": "Ganancias",
                             "data": profit_data,
-                            "backgroundColor": "rgba(75, 192, 192, 0.6)",  # Verde
-                            "borderColor": "rgba(75, 192, 192, 1)",
-                            "borderWidth": 1,
+                            "backgroundColor": "rgba(23, 162, 184, 0.6)",  # Azul claro
+                            "borderColor": "rgba(23, 162, 184, 1)",  # Azul oscuro
+                            "borderWidth": 2,
                             "type": "line",  # Línea para ganancias
+                            "fill": False,
                         },
                     ],
                 },
@@ -118,9 +119,18 @@ class Transaction(db.Model):
                     "plugins": {
                         "title": {
                             "display": True,
-                            "text": "Comparación de Costos, Ventas y Ganancias (Ordenados por Mes)",
+                            "text": "Comparación de Ingresos, Gastos y Ganancias",
                             "font": {
                                 "size": 18,
+                            },
+                            "color": "#ffffff",  # Blanco para destacar
+                        },
+                        "legend": {
+                            "labels": {
+                                "font": {
+                                    "size": 14,
+                                },
+                                "color": "#ffffff",  # Blanco
                             },
                         },
                     },
@@ -130,12 +140,26 @@ class Transaction(db.Model):
                             "title": {
                                 "display": True,
                                 "text": "Valores en USD ($)",
+                                "color": "#ffffff",  # Blanco
+                                "font": {
+                                    "size": 14,
+                                },
+                            },
+                            "ticks": {
+                                "color": "#ffffff",  # Blanco
                             },
                         },
                         "x": {
                             "title": {
                                 "display": True,
                                 "text": "Meses",
+                                "color": "#ffffff",  # Blanco
+                                "font": {
+                                    "size": 14,
+                                },
+                            },
+                            "ticks": {
+                                "color": "#ffffff",  # Blanco
                             },
                         },
                     },
@@ -144,6 +168,7 @@ class Transaction(db.Model):
                 },
             },
         }
+
 
 
 class Payment(db.Model):

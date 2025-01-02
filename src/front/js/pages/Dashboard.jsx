@@ -55,57 +55,59 @@ const Dashboard = () => {
 
     return (
         <div className="container mt-5">
-            <div className="row mb-4">
-                <div className="col text-center">
-                    <h1 className="fw-bold">{user.company || "Mi Empresa"}</h1>
-                    <p className="text-muted">
-                        Bienvenido, <span className="text-dark">{user.name || "Usuario"}</span>.
-                        Aquí tienes un resumen de cómo se encuentra actualmente tu empresa.
+            {/* Título principal */}
+            <div className="row mb-4 text-center">
+                <div className="col">
+                    <h1 className="fw-bold text-primary">{user.company || "Mi Empresa"}</h1>
+                    <p className="text-muted fs-5">
+                        Bienvenido, <span className="text-dark fw-bold">{user.name || "Usuario"}</span>.
                     </p>
                 </div>
             </div>
 
+            {/* Resumen general */}
             <div className="row g-4">
-                {/* Resumen general */}
                 <div className="col-md-4">
-                    <div className="card shadow border-0 h-100">
-                        <div className="card-body text-center">
-                            <h5 className="card-title fw-bold">Proyectos</h5>
-                            <p className="card-text text-muted">Total de proyectos activos</p>
+                    <div className="card shadow border-0 h-100 text-center">
+                        <div className="card-body">
+                            <h5 className="card-title fw-bold text-primary">Proyectos</h5>
+                            <p className="card-text text-muted">Proyectos activos</p>
                             <h2 className="fw-bold text-primary">{store.projects?.length || 0}</h2>
-                            <a href="/projects" className="btn btn-dark mt-3 w-100">Ver Proyectos</a>
+                            <a href="/projects" className="btn btn-outline-primary mt-3 w-100">Ver Proyectos</a>
                         </div>
                     </div>
                 </div>
-
                 <div className="col-md-4">
-                    <div className="card shadow border-0 h-100">
-                        <div className="card-body text-center">
-                            <h5 className="card-title fw-bold">Transacciones</h5>
+                    <div className="card shadow border-0 h-100 text-center">
+                        <div className="card-body">
+                            <h5 className="card-title fw-bold text-success">Transacciones</h5>
                             <p className="card-text text-muted">Registros financieros</p>
                             <h2 className="fw-bold text-success">{store.transactions?.length || 0}</h2>
-                            <a href="/transactions" className="btn btn-dark mt-3 w-100">Ver Transacciones</a>
+                            <a href="/transactions" className="btn btn-outline-success mt-3 w-100">Ver Transacciones</a>
                         </div>
                     </div>
                 </div>
-
                 <div className="col-md-4">
-                    <div className="card shadow border-0 h-100">
-                        <div className="card-body text-center">
-                            <h5 className="card-title fw-bold">Empleados</h5>
+                    <div className="card shadow border-0 h-100 text-center">
+                        <div className="card-body">
+                            <h5 className="card-title fw-bold text-warning">Empleados</h5>
                             <p className="card-text text-muted">Personal registrado</p>
                             <h2 className="fw-bold text-warning">{store.employees?.length || 0}</h2>
-                            <a href="/employees" className="btn btn-dark mt-3 w-100">Ver Empleados</a>
+                            <a href="/employees" className="btn btn-outline-warning mt-3 w-100">Ver Empleados</a>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Gráfico de datos */}
             <div className="row mt-5">
                 <div className="col">
                     <div className="card shadow border-0">
+                        <div className="card-header bg-primary text-white text-center">
+                            <h5 className="fw-bold mb-0">Resumen Financiero</h5>
+                        </div>
                         <div className="card-body">
-                            <Chart /> 
+                            <Chart />
                         </div>
                     </div>
                 </div>
@@ -115,3 +117,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

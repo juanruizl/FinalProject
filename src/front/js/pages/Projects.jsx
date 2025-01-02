@@ -45,10 +45,10 @@ const Projects = () => {
 
   return (
     <div className="container mt-5">
-      <h1 className="mb-4">Proyectos</h1>
+      <h1 className="text-primary mb-4">Proyectos</h1>
 
-      <Table striped bordered hover responsive>
-        <thead>
+      <Table striped bordered hover responsive className="shadow-sm">
+        <thead className="bg-dark text-white">
           <tr>
             <th>#</th>
             <th>Nombre</th>
@@ -78,14 +78,14 @@ const Projects = () => {
                   }}
                   className="me-2"
                 >
-                  Editar
+                  <i className="bi bi-pencil"></i> Editar
                 </Button>
                 <Button
                   variant="outline-danger"
                   size="sm"
                   onClick={() => handleDelete(project.id)}
                 >
-                  Eliminar
+                  <i className="bi bi-trash"></i> Eliminar
                 </Button>
               </td>
             </tr>
@@ -93,7 +93,7 @@ const Projects = () => {
         </tbody>
       </Table>
 
-      <Button variant="dark" onClick={handleModalShow}>
+      <Button variant="primary" onClick={handleModalShow} className="mt-4">
         Añadir Proyecto
       </Button>
 
@@ -151,7 +151,7 @@ const Projects = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-            <Button variant="dark" type="submit">
+            <Button variant="primary" type="submit" className="w-100">
               {formData.id ? "Actualizar" : "Crear"}
             </Button>
           </Form>

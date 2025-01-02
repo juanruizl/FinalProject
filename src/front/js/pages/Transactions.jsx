@@ -66,14 +66,15 @@ const Transactions = () => {
 
     return (
         <div className="container mt-5">
-            <h1 className="mb-4">Transacciones</h1>
+            <h1 className="text-primary mb-4">Transacciones</h1>
+
             {store.loading ? (
                 <div className="text-center">
                     <Spinner animation="border" />
                 </div>
             ) : (
-                <Table striped bordered hover responsive>
-                    <thead>
+                <Table striped bordered hover responsive className="shadow-sm">
+                    <thead className="bg-dark text-white">
                         <tr>
                             <th>#</th>
                             <th>Fecha</th>
@@ -97,9 +98,8 @@ const Transactions = () => {
                                                 : "text-danger fw-bold"
                                         }
                                     >
-                                        {transaction.transaction_type === "income" ? "+" : "-"}${
-                                            transaction.amount.toLocaleString()
-                                        }
+                                        {transaction.transaction_type === "income" ? "+" : "-"}$
+                                        {transaction.amount.toLocaleString()}
                                     </td>
                                     <td>{transaction.description || "-"}</td>
                                     <td>
@@ -166,13 +166,15 @@ const Transactions = () => {
                 </Table>
             )}
 
-            <Button variant="dark" onClick={handleModalShow}>
+            <Button variant="primary" onClick={handleModalShow} className="mt-4">
                 Añadir Transacción
             </Button>
 
             <Modal show={showModal} onHide={handleModalClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{formData.id ? "Editar Transacción" : "Nueva Transacción"}</Modal.Title>
+                    <Modal.Title>
+                        {formData.id ? "Editar Transacción" : "Nueva Transacción"}
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
@@ -223,7 +225,7 @@ const Transactions = () => {
                                 required
                             />
                         </Form.Group>
-                        <Button variant="dark" type="submit">
+                        <Button variant="primary" type="submit" className="w-100">
                             {formData.id ? "Actualizar" : "Crear"}
                         </Button>
                     </Form>

@@ -11,6 +11,8 @@ import Budgets from "./pages/Budgets.jsx";
 import Employees from "./pages/Employees.jsx";
 import Projects from "./pages/Projects.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
+import Profile from "./pages/Profile.jsx";
+import UserProfile from "./pages/Profile.jsx";
 
 const App = () => {
     return (
@@ -30,6 +32,7 @@ const App = () => {
                         <Route path="/budgets" element={<Budgets />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/projects" element={<Projects />} />
+                        <Route path="/profile" element={<UserProfile />} /> 
                     </Route>
 
                     {/* Ruta por defecto */}

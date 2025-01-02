@@ -13,7 +13,7 @@ const Employees = () => {
   });
 
   useEffect(() => {
-    actions.loadEmployees(); 
+    actions.loadEmployees();
   }, []);
 
   const handleModalClose = () => setShowModal(false);
@@ -43,10 +43,10 @@ const Employees = () => {
 
   return (
     <div className="container mt-5">
-      <h1 className="mb-4">Empleados</h1>
+      <h1 className="text-primary mb-4">Empleados</h1>
 
-      <Table striped bordered hover responsive>
-        <thead>
+      <Table striped bordered hover responsive className="shadow-sm">
+        <thead className="bg-dark text-white">
           <tr>
             <th>#</th>
             <th>Nombre</th>
@@ -72,14 +72,14 @@ const Employees = () => {
                   }}
                   className="me-2"
                 >
-                  Editar
+                  <i className="bi bi-pencil"></i> Editar
                 </Button>
                 <Button
                   variant="outline-danger"
                   size="sm"
                   onClick={() => handleDelete(employee.id)}
                 >
-                  Eliminar
+                  <i className="bi bi-trash"></i> Eliminar
                 </Button>
               </td>
             </tr>
@@ -87,7 +87,7 @@ const Employees = () => {
         </tbody>
       </Table>
 
-      <Button variant="dark" onClick={handleModalShow}>
+      <Button variant="primary" onClick={handleModalShow} className="mt-4">
         Añadir Empleado
       </Button>
 
@@ -126,7 +126,7 @@ const Employees = () => {
                 required
               />
             </Form.Group>
-            <Button variant="dark" type="submit">
+            <Button variant="primary" type="submit" className="w-100">
               {formData.id ? "Actualizar" : "Crear"}
             </Button>
           </Form>

@@ -8,7 +8,7 @@ const getState = ({ getStore, getActions, setStore }) => {
             projects: [],
             budgets: [],
             employees: [],
-            chartUrl: null, 
+            chartUrl: null,
             errorMessage: null,
             loading: false,
         },
@@ -16,12 +16,12 @@ const getState = ({ getStore, getActions, setStore }) => {
             syncTokenFromSessionStorage: async () => {
                 const token = sessionStorage.getItem("token");
                 const user_id = sessionStorage.getItem("user_id");
-            
+
                 console.log("Token encontrado en sessionStorage:", token);
-            
+
                 if (token && token.split(".").length === 3) {
                     setStore({ token, user_id });
-            
+
                     if (!getStore().currentUser) {
                         try {
                             await getActions().getCurrentUser();
@@ -38,8 +38,8 @@ const getState = ({ getStore, getActions, setStore }) => {
                     sessionStorage.removeItem("user_id");
                     setStore({ token: null, user_id: null });
                 }
-            },            
-            
+            },
+
 
             login: async (email, password) => {
                 try {
@@ -57,7 +57,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                         });
                         sessionStorage.setItem("token", data.token);
                         sessionStorage.setItem("user_id", data.user_id);
-                        return true; 
+                        return true;
                     } else {
                         const errorData = await response.json();
                         console.error("Error en login:", errorData.msg || response.statusText);
@@ -98,12 +98,12 @@ const getState = ({ getStore, getActions, setStore }) => {
             getCurrentUser: async () => {
                 const store = getStore();
                 const user_id = store.user_id || sessionStorage.getItem("user_id");
-            
+
                 if (!store.token || !user_id) {
                     console.warn("No hay token o user_id disponible para obtener el usuario.");
                     return;
                 }
-            
+
                 try {
                     // Verifica si el usuario ya está cargado para evitar solicitudes redundantes
                     if (!store.currentUser) {
@@ -114,7 +114,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                                 "Content-Type": "application/json",
                             },
                         });
-            
+
                         if (response.ok) {
                             const user = await response.json();
                             setStore({ currentUser: user });
@@ -126,7 +126,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                     console.error("Error en getCurrentUser:", error.message);
                 }
             },
-            
+
 
             fetchWithToken: async (url, options = {}) => {
                 const store = getStore();
@@ -134,7 +134,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                     console.error("Token no disponible. Asegúrate de estar autenticado.");
                     throw new Error("Token no disponible. Inicia sesión nuevamente.");
                 }
-            
+
                 try {
                     const response = await fetch(url, {
                         ...options,
@@ -144,7 +144,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                             "Content-Type": "application/json",
                         },
                     });
-            
+
                     if (!response.ok) {
                         if (response.status === 401) {
                             console.error("Token inválido o expirado. Cerrando sesión.");
@@ -153,13 +153,13 @@ const getState = ({ getStore, getActions, setStore }) => {
                         const errorData = await response.json();
                         throw new Error(errorData.message || `Error ${response.status}`);
                     }
-            
+
                     return await response.json();
                 } catch (error) {
                     console.error("Error en fetchWithToken:", error.message);
                     throw error;
                 }
-            },            
+            },
 
             fetchEntities: async (endpoint, storeKey) => {
                 setStore({ loading: true });
@@ -232,12 +232,12 @@ const getState = ({ getStore, getActions, setStore }) => {
             loadTransactions: async () => {
                 const { fetchWithToken } = getActions();
                 const store = getStore();
-            
+
                 if (!store.token) {
                     console.warn("No se puede cargar transacciones: token no disponible.");
                     return; // Evita lanzar un error, simplemente detente
                 }
-            
+
                 try {
                     const transactions = await fetchWithToken(`${process.env.BACKEND_URL}/api/transactions`);
                     setStore({ transactions });
@@ -247,8 +247,8 @@ const getState = ({ getStore, getActions, setStore }) => {
                     setStore({ transactions: [] });
                     throw error;
                 }
-            },            
-                             
+            },
+
             loadPayments: async () =>
                 await getActions().fetchEntities("payments", "payments"),
             loadProjects: async () =>
@@ -267,7 +267,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                         if (endDate) params.append("end_date", endDate);
                         url += `?${params.toString()}`;
                     }
-            
+
                     const chartData = await getActions().fetchWithToken(url);
                     if (chartData && chartData.url) {
                         return chartData.url;
@@ -276,9 +276,79 @@ const getState = ({ getStore, getActions, setStore }) => {
                     }
                 } catch (error) {
                     console.error("Error al cargar datos del gráfico:", error.message);
-                    throw error; 
+                    throw error;
                 }
-            },            
+            },
+
+            updateUser: async (userData) => {
+                const store = getStore();
+                const token = store.token;
+
+                if (!token || !store.currentUser) {
+                    console.error("Token o usuario no disponible. Asegúrate de que el usuario esté autenticado.");
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(`${process.env.BACKEND_URL}/api/users/${store.currentUser.id}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(userData),
+                    });
+
+                    if (response.ok) {
+                        const updatedUser = await response.json();
+                        setStore({ currentUser: updatedUser });
+                        console.log("Usuario actualizado con éxito:", updatedUser);
+                        return true;
+                    } else {
+                        const errorData = await response.json();
+                        console.error("Error al actualizar el usuario:", errorData.message || response.statusText);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error("Error en la solicitud de actualización:", error.message);
+                    return false;
+                }
+            },
+
+            // Elimina la cuenta del usuario actual
+            deleteAccount: async () => {
+                const store = getStore();
+                const token = store.token;
+
+                if (!token || !store.currentUser) {
+                    console.error("Token o usuario no disponible. Asegúrate de que el usuario esté autenticado.");
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(`${process.env.BACKEND_URL}/api/users/${store.currentUser.id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        sessionStorage.removeItem("token");
+                        sessionStorage.removeItem("user_id");
+                        setStore({ currentUser: null, token: null, user_id: null });
+                        console.log("Cuenta eliminada con éxito.");
+                        return true;
+                    } else {
+                        const errorData = await response.json();
+                        console.error("Error al eliminar la cuenta:", errorData.message || response.statusText);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error("Error en la solicitud de eliminación:", error.message);
+                    return false;
+                }
+            },
         },
     };
 };

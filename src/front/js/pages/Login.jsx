@@ -19,9 +19,14 @@ const Login = () => {
     };
 
     return (
-        <div className="container d-flex justify-content-center align-items-center vh-100">
-            <div className="col-md-6 p-5 bg-light shadow rounded">
-                <h2 className="text-center mb-4">Iniciar Sesión</h2>
+        <div
+            className="container-fluid d-flex justify-content-center align-items-center vh-100"
+            style={{
+                background: "linear-gradient(135deg, #e3f2fd, #90caf9)",
+            }}
+        >
+            <div className="col-md-4 p-5 bg-white shadow rounded">
+                <h2 className="text-center text-primary mb-4">Iniciar Sesión</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Correo Electrónico</label>
@@ -45,11 +50,25 @@ const Login = () => {
                             required
                         />
                     </div>
-                    <button type="submit" className="btn btn-dark w-100">Entrar</button>
+                    <button
+                        type="submit"
+                        className="btn btn-primary w-100 fw-bold"
+                    >
+                        Entrar
+                    </button>
                 </form>
                 <p className="text-center mt-3">
                     ¿No tienes una cuenta?{" "}
-                    <a href="/signup" className="text-decoration-none">Regístrate aquí</a>
+                    <a
+                        href="/signup"
+                        className="text-primary text-decoration-none fw-bold"
+                        style={{
+                            textDecoration: "underline",
+                            textUnderlineOffset: "3px",
+                        }}
+                    >
+                        Regístrate aquí
+                    </a>
                 </p>
             </div>
         </div>

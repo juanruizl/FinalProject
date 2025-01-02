@@ -45,10 +45,10 @@ const Budgets = () => {
 
   return (
     <div className="container mt-5">
-      <h1 className="mb-4">Presupuestos</h1>
+      <h1 className="text-primary mb-4">Presupuestos</h1>
 
-      <Table striped bordered hover responsive>
-        <thead>
+      <Table striped bordered hover responsive className="shadow-sm">
+        <thead className="bg-dark text-white">
           <tr>
             <th>#</th>
             <th>Proyecto</th>
@@ -68,7 +68,23 @@ const Budgets = () => {
               </td>
               <td>${budget.amount.toLocaleString()}</td>
               <td>{budget.description || "-"}</td>
-              <td>{budget.status}</td>
+              <td>
+                <span
+                  className={`badge ${
+                    budget.status === "approved"
+                      ? "bg-success"
+                      : budget.status === "rejected"
+                      ? "bg-danger"
+                      : "bg-warning text-dark"
+                  }`}
+                >
+                  {budget.status === "approved"
+                    ? "Aprobado"
+                    : budget.status === "rejected"
+                    ? "Rechazado"
+                    : "Pendiente"}
+                </span>
+              </td>
               <td>
                 <Button
                   variant="outline-primary"
@@ -79,14 +95,14 @@ const Budgets = () => {
                   }}
                   className="me-2"
                 >
-                  Editar
+                  <i className="bi bi-pencil"></i> Editar
                 </Button>
                 <Button
                   variant="outline-danger"
                   size="sm"
                   onClick={() => handleDelete(budget.id)}
                 >
-                  Eliminar
+                  <i className="bi bi-trash"></i> Eliminar
                 </Button>
               </td>
             </tr>
@@ -94,7 +110,7 @@ const Budgets = () => {
         </tbody>
       </Table>
 
-      <Button variant="dark" onClick={handleModalShow}>
+      <Button variant="primary" onClick={handleModalShow} className="mt-4">
         Añadir Presupuesto
       </Button>
 
@@ -147,7 +163,7 @@ const Budgets = () => {
                 <option value="rejected">Rechazado</option>
               </Form.Select>
             </Form.Group>
-            <Button variant="dark" type="submit">
+            <Button variant="primary" type="submit" className="w-100">
               {formData.id ? "Actualizar" : "Crear"}
             </Button>
           </Form>
