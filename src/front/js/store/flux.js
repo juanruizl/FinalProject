@@ -17,10 +17,11 @@ const getState = ({ getStore, getActions, setStore }) => {
                 const token = sessionStorage.getItem("token");
                 const user_id = sessionStorage.getItem("user_id");
             
+                console.log("Token encontrado en sessionStorage:", token);
+            
                 if (token && token.split(".").length === 3) {
                     setStore({ token, user_id });
             
-                    // Asegúrate de que getCurrentUser no se llama repetidamente
                     if (!getStore().currentUser) {
                         try {
                             await getActions().getCurrentUser();
@@ -32,11 +33,12 @@ const getState = ({ getStore, getActions, setStore }) => {
                         }
                     }
                 } else {
+                    console.warn("No se encontró un token válido en sessionStorage.");
                     sessionStorage.removeItem("token");
                     sessionStorage.removeItem("user_id");
                     setStore({ token: null, user_id: null });
                 }
-            },
+            },            
             
 
             login: async (email, password) => {
@@ -230,9 +232,10 @@ const getState = ({ getStore, getActions, setStore }) => {
             loadTransactions: async () => {
                 const { fetchWithToken } = getActions();
                 const store = getStore();
+            
                 if (!store.token) {
-                    console.error("No se puede cargar transacciones: token no disponible.");
-                    throw new Error("No se puede cargar transacciones sin un token.");
+                    console.warn("No se puede cargar transacciones: token no disponible.");
+                    return; // Evita lanzar un error, simplemente detente
                 }
             
                 try {
@@ -244,7 +247,7 @@ const getState = ({ getStore, getActions, setStore }) => {
                     setStore({ transactions: [] });
                     throw error;
                 }
-            },
+            },            
                              
             loadPayments: async () =>
                 await getActions().fetchEntities("payments", "payments"),
